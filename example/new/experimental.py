@@ -251,9 +251,14 @@ class Experiment:
         exe = Popen(command_parts, stdout=PIPE, stderr=PIPE)
         out, err = exe.communicate()
 
-        if len(err) > 0:
-            raise Exception(err.decode('utf-8'))
+        lines = out.decode(sys.stdin.encoding).split('\n')
+        if len(lines) < 2:
+            raise Exception("Command didn't return a directory")
 
-        dir = out.decode("utf-8").split('\n')[-2]
+        dir = lines[-2]
+
+        if len(err) > 0 and not os.path.exists(dir):
+            error = err.decode(sys.stdin.encoding)
+            raise Exception(error)
 
         return dir
