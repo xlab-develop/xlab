@@ -36,7 +36,6 @@ with exp.setup(parser) as setup:
     }
 
 
-
     ### Save data
     filename = os.path.join(save_dir, 'results.json')
 

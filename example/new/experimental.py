@@ -228,6 +228,6 @@ class Experiment:
         if len(err) > 0:
             raise Exception(err.decode('utf-8'))
 
-        dir = out.decode("utf-8")[:-1]
+        dir = out.decode("utf-8").split('\n')[-2]
 
         return dir

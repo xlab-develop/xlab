@@ -15,7 +15,6 @@ parser.add_argument('functions', type=str, nargs='+')
 args = parser.parse_args()
 
 
-
 ### Create base experiment
 executable = 'generate_data.py'
 req_args = {
@@ -24,6 +23,7 @@ req_args = {
 command = 'python {executable} {function}'
 
 e = exp.Experiment(executable, req_args, command=command)
+
 
 ### Load data
 data = []
@@ -38,7 +38,6 @@ for f in args.functions:
         data.append(json.load(in_file)['y'])
 
 data = np.array(data)
-
 
 
 ### Make plots
