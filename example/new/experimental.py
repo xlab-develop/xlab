@@ -3,6 +3,7 @@ from argparse import Namespace
 import copy
 import sys
 import os
+import traceback
 
 def merge_dicts(a, b, output_type=None):
     a_type = type(a)
@@ -171,11 +172,17 @@ class Setup:
     
     
     def __exit__(self, exc_type, exc_value, tb):
+        if exc_type is not None:
+            traceback.print_exception(exc_type, exc_value, tb)
+            return False
+        
         tmp_args = {
             'executable': sys.argv[0]
         }
         tmp_args = merge_dicts(tmp_args, self.dict)
         cache_set_complete(tmp_args)
+
+        return True
 
 
 
