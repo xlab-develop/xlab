@@ -10,7 +10,7 @@ parser = argparse.ArgumentParser()
 
 parser.add_argument('function', type=str)
 parser.add_argument('--samples', type=int, default=20)
-parser.add_argument('--args', action='version', version='program')
+parser.add_argument('--cpus', type=int, default=1)
 
 args = parser.parse_args()
 save_dir = 'data'

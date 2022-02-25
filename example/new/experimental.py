@@ -17,18 +17,25 @@ def merge_dicts(a, b, output_type=None):
     a = copy.deepcopy(a)
 
     for key in b:
-        if key in b:
-            val = b[key]
-            if type(val) == dict and key in a:
-                a[key] = merge_dicts(a[key], val)
-            else:
-                a[key] = val
+        val = b[key]
+        if type(val) == dict and key in a and type(a[key]) == dict:
+            a[key] = merge_dicts(a[key], val)
+        else:
+            a[key] = val
 
     if output_type == None:
         output_type = a_type
     if output_type == Namespace:
         a = Namespace(**a)
 
+    return a
+
+def substract_dict_keys(a, keys):
+    a = copy.deepcopy(a)
+    for key in keys:
+        if key in a:
+            del a[key]
+    
     return a
 
 
@@ -120,51 +127,59 @@ import copy
 import json
 import os
 
-def setup(parser):
-    return Setup(parser)
+def setup(*args, **kwargs):
+    return Setup(*args, **kwargs)
 
 class Setup:
-    def __init__(self, parser):
+    def __init__(self, parser, hash_ignore=[]):
         parser.add_argument("--exp-config", default='{}', type=json.loads)
         parser.add_argument("--exp-dir", default=False, action="store_const", const=True)
         parser.add_argument("--exp-force", default=False, action="store_const", const=True)
         parser.add_argument("--exp-no-wait", default=False, action="store_const", const=True)
 
         self.parser = parser
+
+        self._hash_ignore = hash_ignore
     
     def __enter__(self):
-        self.args = self.parser.parse_args()
-        self.dict = dict(vars(self.args))
+        default_args_keys = ['exp_config', 'exp_dir', 'exp_force', 'exp_no_wait']
+        default_config_keys = ['executable']
 
-        params_dict = dict(vars(self.args))
-        config_dict = self.args.exp_config
-        self.dict = merge_dicts(params_dict, config_dict)
-
-        for key in ['exp_config', 'exp_dir', 'exp_force', 'exp_no_wait']:
-            if key in self.dict:
-                del self.dict[key]
-
-        tmp_args = {
+        args = {
             'executable': sys.argv[0]
         }
-        tmp_args = merge_dicts(tmp_args, self.dict)
+        args = merge_dicts(args, dict(vars(self.parser.parse_args())))
+        args = merge_dicts(args, args['exp_config'])
 
-        exists = cache_exists(tmp_args)
+        self._all_args = args
 
-        self.dir = cache_get_dir(tmp_args) if exists else cache_assign_dir(tmp_args)
+        user_args = substract_dict_keys(args, default_args_keys + default_config_keys)
+        config_args = substract_dict_keys(args, default_args_keys)
+        hash_args = substract_dict_keys(args, 
+            substract_dict_keys(default_args_keys, ['executable']) +
+            default_config_keys + self._hash_ignore
+        )
+        
+        self.args = Namespace(**user_args)
+        
+
+        exists = cache_exists(hash_args)
+        self.dir = cache_get_dir(hash_args) if exists else cache_assign_dir(hash_args)
+
         os.makedirs(self.dir, exist_ok=True)
 
-        if self.args.exp_dir:
-            path = os.path.join(self.dir, 'config.json')
+        path = os.path.join(self.dir, 'config.json')
+        if not os.path.exists(path) or args['exp_force']:
             with open(path, 'w') as out_file:
-                json.dump(tmp_args, out_file, indent=4)
+                json.dump(config_args, out_file, indent=4)
+
+        if args['exp_dir']:
 
             print(self.dir)
 
             exit(0)
         
-        # TODO: solve cache conflict. By calling exp-dir first, it assuems it already
-        if cache_complete(tmp_args) and not self.args.exp_force:
+        if cache_complete(hash_args) and not args['exp_force']:
             print('*** Using cached data on {}'.format(self.dir))
             exit(0)
         
@@ -175,12 +190,16 @@ class Setup:
         if exc_type is not None:
             traceback.print_exception(exc_type, exc_value, tb)
             return False
+
+        default_args_keys = ['exp_config', 'exp_dir', 'exp_force', 'exp_no_wait']
+        default_config_keys = ['executable']
         
-        tmp_args = {
-            'executable': sys.argv[0]
-        }
-        tmp_args = merge_dicts(tmp_args, self.dict)
-        cache_set_complete(tmp_args)
+        hash_args = substract_dict_keys(self._all_args, 
+            substract_dict_keys(default_args_keys, ['executable']) +
+            default_config_keys + self._hash_ignore
+        )
+
+        cache_set_complete(hash_args)
 
         return True
 

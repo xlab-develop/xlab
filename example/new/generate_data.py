@@ -12,9 +12,11 @@ parser = argparse.ArgumentParser()
 
 parser.add_argument('function', type=str)
 parser.add_argument('--samples', type=int, default=20)
+parser.add_argument('--cpus', type=int, default=1)
 
+ignores = ['cpus']
 
-with exp.setup(parser) as setup:
+with exp.setup(parser, hash_ignore=ignores) as setup:
     args = setup.args
     save_dir = setup.dir
 
