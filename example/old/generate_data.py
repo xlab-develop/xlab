@@ -2,6 +2,7 @@ import argparse
 import numpy as np
 import os
 import json
+import time
 
 
 ### Get arguments
@@ -17,6 +18,7 @@ save_dir = 'data'
 
 
 ### Get data
+time.sleep(3)
 x = np.arange(args.samples)
 if args.function == 'linear':
     y = x

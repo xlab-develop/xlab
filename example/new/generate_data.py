@@ -2,6 +2,7 @@ import argparse
 import numpy as np
 import os
 import json
+import time
 
 import experimental as exp
 
@@ -19,6 +20,7 @@ with exp.setup(parser) as setup:
 
 
     ### Get data
+    time.sleep(3)
     x = np.arange(args.samples)
     if args.function == 'linear':
         y = x
@@ -36,7 +38,7 @@ with exp.setup(parser) as setup:
 
 
     ### Save data
-    filename = os.path.join(save_dir, 'result.json')
+    filename = os.path.join(save_dir, 'results.json')
 
     with open(filename, 'w') as out_json:
         json.dump(data, out_json)
