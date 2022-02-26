@@ -219,13 +219,14 @@ class Experiment:
         with open(path, 'r') as in_file:
             self.args = json.load(in_file)
 
-    def run(self, use_cached=True, wait=True):
+    def run(self, special_command=None, use_cached=True, wait=True):
         tmp_args = {
             'executable': self.executable
         }
         tmp_args = merge_dicts(tmp_args, copy.deepcopy(self.args))
 
-        command = self.command.format(**tmp_args)
+        command = special_command if special_command != None else self.command
+        command = command.format(**tmp_args)
         command_parts = command.split(' ')
         if not use_cached:
             command_parts.append('--exp-force')
