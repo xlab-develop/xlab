@@ -171,7 +171,7 @@ class Setup:
         config_args = substract_dict_keys(args, default_args_keys)
         hash_args = substract_dict_keys(args, 
             substract_dict_keys(default_args_keys, ['executable']) +
-            default_config_keys + self._hash_ignore
+            self._hash_ignore
         )
         
         self.args = Namespace(**user_args)
