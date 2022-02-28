@@ -218,7 +218,7 @@ class Setup:
         
         hash_args = substract_dict_keys(self._all_args, 
             substract_dict_keys(default_args_keys, ['executable']) +
-            default_config_keys + self._hash_ignore
+            self._hash_ignore
         )
 
         cache_set_complete(hash_args)
