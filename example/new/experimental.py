@@ -3,7 +3,6 @@ from argparse import Namespace
 import copy
 import sys
 import os
-import traceback
 
 def merge_dicts(a, b, output_type=None):
     a_type = type(a)
@@ -46,12 +45,17 @@ import json
 import hashlib
 import copy
 import pickle
+import fasteners
 
 exp_path = '.exp'
 runs_path = 'runs'
 metadata_path = os.path.join(exp_path, 'metadata.json')
 hashmap_path = os.path.join(exp_path, 'hashmap.pkl')
+hashmap_lock_path = os.path.join(exp_path, '.hashmap.lock')
 
+hashmap_lock = fasteners.InterProcessReaderWriterLock(hashmap_lock_path)
+
+# Setup .exp and runs
 if not os.path.exists(exp_path):
     os.makedirs(exp_path, exist_ok=True)
 
@@ -68,6 +72,7 @@ if not os.path.exists(hashmap_path):
     with open(hashmap_path, 'wb') as out_file:
         pickle.dump({}, out_file)
 
+# Cache functions
 def cache_get_hash(args):
     hash = hashlib.sha224(json.dumps(sorted(args.items()), separators=(',', ':')).encode('utf-8')).hexdigest()
     return hash
@@ -77,8 +82,12 @@ def cache_exists(args):
         hash = cache_get_hash(args)
     elif type(args) == str:
         hash = args
+
+    hashmap_lock.acquire_read_lock()
     with open(hashmap_path, 'rb') as in_file:
         cache = pickle.load(in_file)
+    hashmap_lock.release_read_lock()
+
     return hash in cache
 
 def cache_is_complete(args):
@@ -86,8 +95,12 @@ def cache_is_complete(args):
         hash = cache_get_hash(args)
     elif type(args) == str:
         hash = args
+
+    hashmap_lock.acquire_read_lock()
     with open(hashmap_path, 'rb') as in_file:
         cache = pickle.load(in_file)
+    hashmap_lock.release_read_lock()
+
     return hash in cache and cache[hash][1]
 
 def cache_get_dir(args):
@@ -95,28 +108,46 @@ def cache_get_dir(args):
         hash = cache_get_hash(args)
     elif type(args) == str:
         hash = args
+
+    hashmap_lock.acquire_read_lock()
     with open(hashmap_path, 'rb') as in_file:
         cache = pickle.load(in_file)
+    hashmap_lock.release_read_lock()
+
     if hash in cache:
         return cache[hash][0]
     else:
         raise Exception('error: Hash not found in cache.')
 
 def cache_assign_dir(args):
+    hashmap_lock.acquire_read_lock()
     with open(metadata_path, 'r') as in_file:
         metadata = json.load(in_file)
+    hashmap_lock.release_read_lock()
+
     id = metadata['next_id']
     metadata['next_id'] += 1
+
+    hashmap_lock.acquire_write_lock()
     with open(metadata_path, 'w') as out_file:
         json.dump(metadata, out_file)
+    hashmap_lock.release_write_lock()
+
 
     path = os.path.join(runs_path, str(id))
     hash = cache_get_hash(args)
+
+    hashmap_lock.acquire_read_lock()
     with open(hashmap_path, 'rb') as in_file:
         cache = pickle.load(in_file)
+    hashmap_lock.release_read_lock()
+
     cache[hash] = [path, False]
+
+    hashmap_lock.acquire_write_lock()
     with open(hashmap_path, 'wb') as out_file:
         pickle.dump(cache, out_file)
+    hashmap_lock.release_write_lock()
     
     return path
 
@@ -125,11 +156,18 @@ def cache_set_complete(args):
         hash = cache_get_hash(args)
     elif type(args) == str:
         hash = args
+
+    hashmap_lock.acquire_read_lock()
     with open(hashmap_path, 'rb') as in_file:
         cache = pickle.load(in_file)
+    hashmap_lock.release_read_lock()
+
     cache[hash][1] = True
+
+    hashmap_lock.acquire_write_lock()
     with open(hashmap_path, 'wb') as out_file:
         pickle.dump(cache, out_file)
+    hashmap_lock.release_write_lock()
 
 
 
@@ -138,6 +176,8 @@ from subprocess import Popen, PIPE, STDOUT
 import copy
 import json
 import os
+import traceback
+import fasteners
 
 def setup(*args, **kwargs):
     return Setup(*args, **kwargs)
@@ -154,6 +194,8 @@ class Setup:
         self.parser = parser
 
         self._hash_ignore = hash_ignore
+
+        self._run_lock = None
     
     def __enter__(self):
         default_args_keys = ['exp_config', 'exp_dir', 'exp_is_complete', 'exp_force', 'exp_no_wait', 'exp_hash']
@@ -195,14 +237,16 @@ class Setup:
             print(self.dir)
             exit(0)
         
-        complete = cache_is_complete(hash_args)
-        
         if args['exp_is_complete']:
-            print(complete)
+            print(cache_is_complete(hash_args))
             exit(0)
+
+        self._run_lock = fasteners.InterProcessLock(os.path.join(self.dir, '.run.lock'))
+        self._run_lock.acquire()
         
-        if complete and not args['exp_force']:
+        if cache_is_complete(hash_args) and not args['exp_force']:
             print('*** Using cached data on {}'.format(self.dir))
+            self._run_lock.release()
             exit(0)
         
         return self
@@ -211,6 +255,7 @@ class Setup:
     def __exit__(self, exc_type, exc_value, tb):
         if exc_type is not None:
             traceback.print_exception(exc_type, exc_value, tb)
+            self._run_lock.release()
             return False
 
         default_args_keys = ['exp_config', 'exp_dir', 'exp_is_complete', 'exp_force', 'exp_no_wait', 'exp_hash']
@@ -222,6 +267,8 @@ class Setup:
         )
 
         cache_set_complete(hash_args)
+
+        self._run_lock.release()
 
         return True
 
