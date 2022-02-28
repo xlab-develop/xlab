@@ -212,8 +212,8 @@ class Setup:
         user_args = substract_dict_keys(args, default_args_keys + default_config_keys)
         config_args = substract_dict_keys(args, default_args_keys)
         hash_args = substract_dict_keys(args, 
-            substract_dict_keys(default_args_keys, ['executable']) +
-            self._hash_ignore
+            [k for k in default_config_keys if k not in ['executable']] +
+            default_args_keys + self._hash_ignore
         )
         
         self.args = Namespace(**user_args)
@@ -262,8 +262,8 @@ class Setup:
         default_config_keys = ['executable']
         
         hash_args = substract_dict_keys(self._all_args, 
-            substract_dict_keys(default_args_keys, ['executable']) +
-            self._hash_ignore
+            [k for k in default_config_keys if k not in ['executable']] +
+            default_args_keys + self._hash_ignore
         )
 
         cache_set_complete(hash_args)
