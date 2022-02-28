@@ -49,11 +49,15 @@ import fasteners
 
 exp_path = '.exp'
 runs_path = 'runs'
+
 metadata_path = os.path.join(exp_path, 'metadata.json')
 hashmap_path = os.path.join(exp_path, 'hashmap.pkl')
+
+metadata_lock_path = os.path.join(exp_path, '.metadata.lock')
 hashmap_lock_path = os.path.join(exp_path, '.hashmap.lock')
 
 hashmap_lock = fasteners.InterProcessReaderWriterLock(hashmap_lock_path)
+metadata_lock = fasteners.InterProcessReaderWriterLock(metadata_lock_path)
 
 # Setup .exp and runs
 if not os.path.exists(exp_path):
@@ -63,14 +67,18 @@ if not os.path.exists(runs_path):
     os.makedirs(runs_path, exist_ok=True)
 
 if not os.path.exists(metadata_path):
+    metadata_lock.acquire_read_lock()
     with open(metadata_path, 'w') as out_file:
         json.dump({
             'next_id': 0
         }, out_file)
+    metadata_lock.release_read_lock()
 
 if not os.path.exists(hashmap_path):
+    hashmap_lock.acquire_read_lock()
     with open(hashmap_path, 'wb') as out_file:
         pickle.dump({}, out_file)
+    hashmap_lock.release_read_lock()
 
 # Cache functions
 def cache_get_hash(args):
@@ -120,18 +128,18 @@ def cache_get_dir(args):
         raise Exception('error: Hash not found in cache.')
 
 def cache_assign_dir(args):
-    hashmap_lock.acquire_read_lock()
+    metadata_lock.acquire_read_lock()
     with open(metadata_path, 'r') as in_file:
         metadata = json.load(in_file)
-    hashmap_lock.release_read_lock()
+    metadata_lock.release_read_lock()
 
     id = metadata['next_id']
     metadata['next_id'] += 1
 
-    hashmap_lock.acquire_write_lock()
+    metadata_lock.acquire_write_lock()
     with open(metadata_path, 'w') as out_file:
         json.dump(metadata, out_file)
-    hashmap_lock.release_write_lock()
+    metadata_lock.release_write_lock()
 
 
     path = os.path.join(runs_path, str(id))
