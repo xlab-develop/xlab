@@ -128,15 +128,13 @@ def cache_get_dir(args):
         raise Exception('error: Hash not found in cache.')
 
 def cache_assign_dir(args):
-    metadata_lock.acquire_read_lock()
+    metadata_lock.acquire_write_lock()
     with open(metadata_path, 'r') as in_file:
         metadata = json.load(in_file)
-    metadata_lock.release_read_lock()
 
     id = metadata['next_id']
     metadata['next_id'] += 1
 
-    metadata_lock.acquire_write_lock()
     with open(metadata_path, 'w') as out_file:
         json.dump(metadata, out_file)
     metadata_lock.release_write_lock()
@@ -145,14 +143,12 @@ def cache_assign_dir(args):
     path = os.path.join(runs_path, str(id))
     hash = cache_get_hash(args)
 
-    hashmap_lock.acquire_read_lock()
+    hashmap_lock.acquire_write_lock()
     with open(hashmap_path, 'rb') as in_file:
         cache = pickle.load(in_file)
-    hashmap_lock.release_read_lock()
 
     cache[hash] = [path, False]
 
-    hashmap_lock.acquire_write_lock()
     with open(hashmap_path, 'wb') as out_file:
         pickle.dump(cache, out_file)
     hashmap_lock.release_write_lock()
@@ -165,14 +161,12 @@ def cache_set_complete(args):
     elif type(args) == str:
         hash = args
 
-    hashmap_lock.acquire_read_lock()
+    hashmap_lock.acquire_write_lock()
     with open(hashmap_path, 'rb') as in_file:
         cache = pickle.load(in_file)
-    hashmap_lock.release_read_lock()
 
     cache[hash][1] = True
 
-    hashmap_lock.acquire_write_lock()
     with open(hashmap_path, 'wb') as out_file:
         pickle.dump(cache, out_file)
     hashmap_lock.release_write_lock()
