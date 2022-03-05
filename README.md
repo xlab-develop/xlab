@@ -1,2 +1,2 @@
 # xLab
-Experiment execution tool for research-oriented projects.
+Experiment execution tool for automation in research-oriented projects.
