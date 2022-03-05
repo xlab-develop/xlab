@@ -1,2 +1,2 @@
-# xlab
-xLab: Experiment execution tool for research-oriented projects.
+# xLab
+Experiment execution tool for research-oriented projects.
