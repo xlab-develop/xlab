@@ -9,7 +9,7 @@ requires_list = [
 
 setuptools.setup(
 	name="xlab",
-	version="0.0.5",
+	version="0.0.9",
 	author="Cesar Salcedo",
 	author_email="cesar.salcedo@utec.edu.pe",
 	description="Experiment execution tool for automation in research-oriented projects.",

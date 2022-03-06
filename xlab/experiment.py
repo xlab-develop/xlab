@@ -6,9 +6,20 @@ import sys
 import os
 import traceback
 import fasteners
+from datetime import datetime
 
 from . import cache
 from .utils import merge_dicts, substract_dict_keys
+
+DEFAULT_ARGS_KEYS = ['exp_config', 'exp_dir', 'exp_is_complete', 'exp_force', 'exp_no_wait', 'exp_hash']
+DEFAULT_CONFIG_KEYS = ['executable', 'exp_time']
+
+def init_args(executable):
+    args = {
+        'executable': executable,
+        'exp_time': datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+    }
+    return args
 
 def setup(*args, **kwargs):
     return Setup(*args, **kwargs)
@@ -29,22 +40,17 @@ class Setup:
         self._run_lock = None
     
     def __enter__(self):
-        default_args_keys = ['exp_config', 'exp_dir', 'exp_is_complete', 'exp_force', 'exp_no_wait', 'exp_hash']
-        default_config_keys = ['executable']
-
-        args = {
-            'executable': sys.argv[0]
-        }
+        args = init_args(sys.argv[0])
         args = merge_dicts(args, dict(vars(self.parser.parse_args())))
         args = merge_dicts(args, args['exp_config'])
 
         self._all_args = args
 
-        user_args = substract_dict_keys(args, default_args_keys + default_config_keys)
-        config_args = substract_dict_keys(args, default_args_keys)
+        user_args = substract_dict_keys(args, DEFAULT_ARGS_KEYS + DEFAULT_CONFIG_KEYS)
+        config_args = substract_dict_keys(args, DEFAULT_ARGS_KEYS)
         hash_args = substract_dict_keys(args, 
-            [k for k in default_config_keys if k not in ['executable']] +
-            default_args_keys + self._hash_ignore
+            [k for k in DEFAULT_CONFIG_KEYS if k not in ['executable']] +
+            DEFAULT_ARGS_KEYS + self._hash_ignore
         )
         
         self.args = Namespace(**user_args)
@@ -88,13 +94,10 @@ class Setup:
             traceback.print_exception(exc_type, exc_value, tb)
             self._run_lock.release()
             return False
-
-        default_args_keys = ['exp_config', 'exp_dir', 'exp_is_complete', 'exp_force', 'exp_no_wait', 'exp_hash']
-        default_config_keys = ['executable']
         
         hash_args = substract_dict_keys(self._all_args, 
-            [k for k in default_config_keys if k not in ['executable']] +
-            default_args_keys + self._hash_ignore
+            [k for k in DEFAULT_CONFIG_KEYS if k not in ['executable']] +
+            DEFAULT_ARGS_KEYS + self._hash_ignore
         )
 
         cache.set_complete(hash_args)
@@ -121,9 +124,7 @@ class Experiment:
             self.args = json.load(in_file)
 
     def run(self, special_command=None, use_cached=True, wait=True):
-        tmp_args = {
-            'executable': self.executable
-        }
+        tmp_args = init_args(self.executable)
         tmp_args = merge_dicts(tmp_args, self.args)
 
         command = special_command if special_command != None else self.command
@@ -145,9 +146,8 @@ class Experiment:
             return self._last_full_hash
         self._last_local_hash = curr_local_hash
 
-        tmp_args = {
-            'executable': self.executable
-        }
+        
+        tmp_args = init_args(self.executable)
         tmp_args = merge_dicts(tmp_args, self.args)
 
         command = self.command.format(**tmp_args)
