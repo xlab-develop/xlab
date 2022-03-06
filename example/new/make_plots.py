@@ -4,7 +4,7 @@ import json
 import numpy as np
 import matplotlib.pyplot as plt
 
-import experimental as exp
+import xlab.experiment as exp
 
 
 ### Get arguments

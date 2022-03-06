@@ -4,7 +4,7 @@ import os
 import json
 import time
 
-import experimental as exp
+import xlab.experiment as exp
 
 
 ### Get arguments
