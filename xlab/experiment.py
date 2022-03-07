@@ -9,6 +9,7 @@ import fasteners
 from datetime import datetime
 
 from . import cache
+from .cache import Cache
 from .utils import merge_dicts, substract_dict_keys
 
 DEFAULT_ARGS_KEYS = ['exp_config', 'exp_dir', 'exp_is_complete', 'exp_force', 'exp_no_wait', 'exp_hash']
@@ -35,8 +36,8 @@ class Setup:
 
         self.parser = parser
 
+        self._cache = Cache()
         self._hash_ignore = hash_ignore
-
         self._run_lock = None
     
     def __enter__(self):
@@ -56,8 +57,8 @@ class Setup:
         self.args = Namespace(**user_args)
         
 
-        exists = cache.exists(hash_args)
-        self.dir = cache.get_dir(hash_args) if exists else cache.assign_dir(hash_args)
+        exists = self._cache.exists(hash_args)
+        self.dir = self._cache.get_dir(hash_args) if exists else self._cache.assign_dir(hash_args)
 
         os.makedirs(self.dir, exist_ok=True)
 
@@ -75,13 +76,13 @@ class Setup:
             exit(0)
         
         if args['exp_is_complete']:
-            print(cache.is_complete(hash_args))
+            print(self._cache.is_complete(hash_args))
             exit(0)
 
         self._run_lock = fasteners.InterProcessLock(os.path.join(self.dir, '.run.lock'))
         self._run_lock.acquire()
         
-        if cache.is_complete(hash_args) and not args['exp_force']:
+        if self._cache.is_complete(hash_args) and not args['exp_force']:
             print('*** Using cached data on {}'.format(self.dir))
             self._run_lock.release()
             exit(0)
@@ -100,7 +101,7 @@ class Setup:
             DEFAULT_ARGS_KEYS + self._hash_ignore
         )
 
-        cache.set_complete(hash_args)
+        self._cache.set_complete(hash_args)
 
         self._run_lock.release()
 
@@ -114,6 +115,7 @@ class Experiment:
         self.command = command
         self.args = req_args
         
+        self._cache = Cache()
         self._last_full_hash = None
         self._last_local_hash = cache.get_hash(self.args)
 
@@ -169,7 +171,7 @@ class Experiment:
 
         hash = lines[-2]
 
-        if not cache.exists(hash):
+        if not self._cache.exists(hash):
             if len(err) > 0:
                 raise Exception(err_msg)
             else:
@@ -180,7 +182,7 @@ class Experiment:
         return hash
 
     def get_dir(self):
-        return cache.get_dir(self.get_hash())
+        return self._cache.get_dir(self.get_hash())
 
     def is_complete(self):
-        return cache.is_complete(self.get_hash())
+        return self._cache.is_complete(self.get_hash())

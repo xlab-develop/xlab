@@ -9,13 +9,13 @@ requires_list = [
 
 setuptools.setup(
 	name="xlab",
-	version="0.0.9",
+	version="0.0.10",
 	author="Cesar Salcedo",
 	author_email="cesar.salcedo@utec.edu.pe",
 	description="Experiment execution tool for automation in research-oriented projects.",
 	long_description=long_description,
 	long_description_content_type="text/markdown",
-        url="https://github.com/csalcedo001/xlab",
+	url="https://github.com/csalcedo001/xlab",
 	packages=setuptools.find_packages(),
 	classifiers=[
 		"Programming Language :: Python :: 3",
@@ -23,5 +23,10 @@ setuptools.setup(
 		"Operating System :: OS Independent",
 	],
 	python_requires='>=3.6',
-        install_requires=requires_list,
+	install_requires=requires_list,
+	entry_points={
+		'console_scripts':[
+			'xlab=xlab.cli:main'
+		]
+	}
 )
