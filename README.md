@@ -1,2 +1,5 @@
-# xLab
-Experiment execution tool for automation in research-oriented projects.
+![xLab Logo](https://github.com/csalcedo001/xlab/blob/master/docs/img/xlab_logo.png)
+
+-------------------------------------------------------------------
+
+xLab is an experiment execution tool that automates tasks in research-oriented projects.
