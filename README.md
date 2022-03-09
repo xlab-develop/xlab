@@ -1,4 +1,4 @@
-![xLab Logo](https://github.com/csalcedo001/xlab/blob/master/docs/img/xlab_logo.png)
+![xLab Logo](https://github.com/csalcedo001/xlab/blob/main/docs/img/xlab_logo.png)
 
 -------------------------------------------------------------------
 
