@@ -8,7 +8,7 @@ import traceback
 import fasteners
 from datetime import datetime
 
-from . import cache
+from . import cache, filesys
 from .cache import Cache
 from .utils import merge_dicts, substract_dict_keys
 
@@ -41,7 +41,9 @@ class Setup:
         self._run_lock = None
     
     def __enter__(self):
-        args = init_args(sys.argv[0])
+        executable = filesys.relative_root_path(sys.argv[0])
+
+        args = init_args(executable)
         args = merge_dicts(args, dict(vars(self.parser.parse_args())))
         args = merge_dicts(args, args['exp_config'])
 
@@ -111,7 +113,7 @@ class Setup:
 
 class Experiment:
     def __init__(self, executable, req_args, command):
-        self.executable = executable
+        self.executable = filesys.relative_root_path(executable)
         self.command = command
         self.args = req_args
         
