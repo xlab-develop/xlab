@@ -83,6 +83,10 @@ class Setup:
 
         self._run_lock = fasteners.InterProcessLock(os.path.join(self.dir, '.run.lock'))
         self._run_lock.acquire()
+
+        err_filename = os.path.join(self.dir, 'error.log')
+        if os.path.exists(err_filename):
+            os.remove(err_filename)
         
         if self._cache.is_complete(hash_args) and not args['exp_force']:
             print('*** Using cached data on {}'.format(self.dir))
@@ -94,7 +98,11 @@ class Setup:
     
     def __exit__(self, exc_type, exc_value, tb):
         if exc_type is not None:
-            traceback.print_exception(exc_type, exc_value, tb)
+            tb_message = ''.join(traceback.format_exception(exc_type, exc_value, tb))
+            err_filename = os.path.join(self.dir, 'error.log')
+            with open(err_filename, 'w') as err_file:
+                err_file.write(tb_message)
+                
             self._run_lock.release()
             return False
         
@@ -140,9 +148,8 @@ class Experiment:
             command_parts.append('--exp-no-wait')
         command_parts += ["--exp-config", "{}".format(json.dumps(self.args))]
         
-        exe = Popen(command_parts)
-        exe.communicate()
-        # TODO: catch errors
+        exe = Popen(command_parts, stdout=PIPE, stderr=PIPE)
+        out, err = exe.communicate()
 
     def get_hash(self):
         curr_local_hash = cache.get_hash(self.args)
