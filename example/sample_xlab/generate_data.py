@@ -31,7 +31,7 @@ with exp.setup(parser, hash_ignore=ignores) as setup:
     elif args.function == 'sqrt':
         y = np.sqrt(x)
     else:
-        print("error: Invalid function '{}'".format(args.function))
+        raise Exception("error: Invalid function '{}'".format(args.function))
 
     data = {
         'y': y.tolist()
