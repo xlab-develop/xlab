@@ -11,7 +11,7 @@ def sort_args(args):
             args[key] = sort_args(args[key])
         return sorted(args.items())
     if type(args) == list:
-        return sorted([sort_args(x) for x in args])
+        return [sort_args(x) for x in args]
 
     return args
 
