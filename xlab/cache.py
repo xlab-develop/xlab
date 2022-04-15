@@ -5,9 +5,19 @@ import os
 
 from . import filesys
 
+def sort_args(args):
+    if type(args) == dict:
+        for key in args:
+            args[key] = sort_args(args[key])
+        return sorted(args.items())
+    if type(args) == list:
+        return sorted([sort_args(x) for x in args])
+
+    return args
+
 # Cache functions
 def get_args_hash(args):
-    hash = hashlib.sha224(json.dumps(sorted(args.items()), separators=(',', ':')).encode('utf-8')).hexdigest()
+    hash = hashlib.sha224(json.dumps(sort_args(args), separators=(',', ':')).encode('utf-8')).hexdigest()
     return hash
 
 def get_hash(args_or_hash):
