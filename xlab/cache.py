@@ -6,6 +6,7 @@ import os
 from . import filesys
 
 def sort_args(args):
+    args = copy.deepcopy(args)
     if type(args) == dict:
         for key in args:
             args[key] = sort_args(args[key])
