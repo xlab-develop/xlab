@@ -6,6 +6,8 @@ import time
 
 import xlab.experiment as exp
 
+import time
+time.sleep(1)
 
 ### Get arguments
 parser = argparse.ArgumentParser()

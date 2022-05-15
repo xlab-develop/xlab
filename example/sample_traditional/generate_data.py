@@ -4,6 +4,8 @@ import os
 import json
 import time
 
+import time
+time.sleep(1)
 
 ### Get arguments
 parser = argparse.ArgumentParser()

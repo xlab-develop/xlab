@@ -31,7 +31,10 @@ for f in args.functions:
     e.args['function'] = f
     exp_dir = e.get_dir()
 
-    e.run(use_cached=True, wait=True)
+    if e.is_complete():
+        print("*** Using cached version from {}".format(exp_dir))
+    else:
+        e.run(use_cached=True, wait=True)
 
     filename = os.path.join(exp_dir, 'results.json')
     with open(filename, 'r') as in_file:
