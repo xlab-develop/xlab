@@ -135,11 +135,11 @@ class Experiment:
         with open(path, 'r') as in_file:
             self.args = json.load(in_file)
 
-    def run(self, special_command=None, use_cached=True, wait=True):
+    def run(self, custom_command=None, use_cached=True, wait=True):
         tmp_args = init_args(self.executable)
         tmp_args = merge_dicts(tmp_args, self.args)
 
-        command = special_command if special_command != None else self.command
+        command = custom_command if custom_command != None else self.command
         command = command.format(**tmp_args)
         command_parts = command.split(' ')
         if not use_cached:
@@ -157,6 +157,8 @@ class Experiment:
             return self._last_full_hash
         self._last_local_hash = curr_local_hash
 
+        if self._cache.exists(self.args):
+            return curr_local_hash
         
         tmp_args = init_args(self.executable)
         tmp_args = merge_dicts(tmp_args, self.args)
@@ -187,6 +189,7 @@ class Experiment:
                 raise Exception("error: Command returned invalid hash.")
 
         self._last_full_hash = hash
+        self._cache.merge_hashes(curr_local_hash, hash)
 
         return hash
 

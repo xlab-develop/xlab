@@ -73,3 +73,8 @@ class Cache:
         hashmap = self.hashmap_loader.load_and_lock_acquire()
         hashmap[hash][1] = True
         self.hashmap_loader.save_and_lock_release(hashmap)
+
+    def merge_hashes(self, new_hash, old_hash):
+        hashmap = self.hashmap_loader.load_and_lock_acquire()
+        hashmap[new_hash] = hashmap[old_hash]
+        self.hashmap_loader.save_and_lock_release(hashmap)
