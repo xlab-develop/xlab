@@ -46,7 +46,7 @@ class Setup:
 
         default_args = init_args(executable)
         parser_args = dict(vars(self.parser.parse_args()))
-        input_config_args = args['exp_config']
+        input_config_args = parser_args['exp_config']
 
         args = merge_dicts(default_args, parser_args)
         args = merge_dicts(args, input_config_args)
