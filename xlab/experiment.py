@@ -12,8 +12,9 @@ from . import cache, filesys
 from .cache import Cache
 from .utils import merge_dicts, substract_dict_keys
 
+DEFAULT_INDEX_KEYS = ['executable']
 DEFAULT_ARGS_KEYS = ['exp_config', 'exp_dir', 'exp_is_complete', 'exp_force', 'exp_no_wait', 'exp_hash']
-DEFAULT_CONFIG_KEYS = ['executable', 'exp_time']
+DEFAULT_CONFIG_KEYS = ['exp_time']
 
 def init_args(executable):
     args = {
@@ -43,18 +44,18 @@ class Setup:
     def __enter__(self):
         executable = filesys.relative_root_path(sys.argv[0])
 
-        args = init_args(executable)
-        args = merge_dicts(args, dict(vars(self.parser.parse_args())))
-        args = merge_dicts(args, args['exp_config'])
+        default_args = init_args(executable)
+        parser_args = dict(vars(self.parser.parse_args()))
+        input_config_args = args['exp_config']
+
+        args = merge_dicts(default_args, parser_args)
+        args = merge_dicts(args, input_config_args)
 
         self._all_args = args
 
-        user_args = substract_dict_keys(args, DEFAULT_ARGS_KEYS + DEFAULT_CONFIG_KEYS)
+        user_args = substract_dict_keys(args, DEFAULT_ARGS_KEYS + DEFAULT_CONFIG_KEYS + DEFAULT_INDEX_KEYS)
         config_args = substract_dict_keys(args, DEFAULT_ARGS_KEYS)
-        hash_args = substract_dict_keys(args, 
-            [k for k in DEFAULT_CONFIG_KEYS if k not in ['executable']] +
-            DEFAULT_ARGS_KEYS + self._hash_ignore
-        )
+        hash_args = substract_dict_keys(args, DEFAULT_ARGS_KEYS + DEFAULT_CONFIG_KEYS + self._hash_ignore)
         
         self.args = Namespace(**user_args)
         
@@ -62,9 +63,10 @@ class Setup:
         exists = self._cache.exists(hash_args)
         self.dir = self._cache.get_dir(hash_args) if exists else self._cache.assign_dir(hash_args)
         
-        user_hash = cache.get_hash(user_args)
-        if not self._cache.exists(user_hash):
-            self._cache.merge_hashes(user_hash, cache.get_hash(hash_args))
+        input_hash_args = substract_dict_keys(input_config_args, DEFAULT_CONFIG_KEYS + self._hash_ignore)
+        input_hash = cache.get_hash(input_hash_args)
+        if not self._cache.exists(input_hash):
+            self._cache.merge_hashes(input_hash, cache.get_hash(hash_args))
 
         os.makedirs(self.dir, exist_ok=True)
 
@@ -110,10 +112,7 @@ class Setup:
             self._run_lock.release()
             return False
         
-        hash_args = substract_dict_keys(self._all_args, 
-            [k for k in DEFAULT_CONFIG_KEYS if k not in ['executable']] +
-            DEFAULT_ARGS_KEYS + self._hash_ignore
-        )
+        hash_args = substract_dict_keys(self._all_args, DEFAULT_CONFIG_KEYS + DEFAULT_ARGS_KEYS + self._hash_ignore)
 
         self._cache.set_complete(hash_args)
 
