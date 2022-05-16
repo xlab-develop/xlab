@@ -61,6 +61,10 @@ class Setup:
 
         exists = self._cache.exists(hash_args)
         self.dir = self._cache.get_dir(hash_args) if exists else self._cache.assign_dir(hash_args)
+        
+        user_hash = cache.get_hash(user_args)
+        if not self._cache.exists(user_hash):
+            self._cache.merge_hashes(user_hash, cache.get_hash(hash_args))
 
         os.makedirs(self.dir, exist_ok=True)
 
