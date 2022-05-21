@@ -123,14 +123,15 @@ class Setup:
 
 
 class Experiment:
-    def __init__(self, executable, req_args, command):
+    def __init__(self, executable, req_args, command, hash_ignore=[]):
         self.executable = filesys.relative_root_path(executable)
         self.command = command
         self.args = req_args
+        self._hash_ignore = hash_ignore
         
         self._cache = Cache()
         self._last_full_hash = None
-        self._last_local_hash = cache.get_hash(self.args)
+        self._last_local_hash = cache.get_hash(substract_dict_keys(merge_dicts(init_args(self.executable), self.args), DEFAULT_CONFIG_KEYS + self._hash_ignore))
 
         dir = self.get_dir()
         
@@ -155,12 +156,15 @@ class Experiment:
         out, err = exe.communicate()
 
     def get_hash(self):
-        curr_local_hash = cache.get_hash(self.args)
-        if curr_local_hash == self._last_local_hash and self._last_full_hash is not None:
-            return self._last_full_hash
+        default_args = init_args(self.executable)
+        local_hash_args = substract_dict_keys(merge_dicts(default_args, self.args), DEFAULT_CONFIG_KEYS + self._hash_ignore)
+
+        curr_local_hash = cache.get_hash(local_hash_args)
+        # if curr_local_hash == self._last_local_hash and self._last_full_hash is not None:
+        #     return self._last_full_hash
         self._last_local_hash = curr_local_hash
 
-        if self._cache.exists(self.args):
+        if self._cache.exists(local_hash_args):
             return curr_local_hash
         
         tmp_args = init_args(self.executable)
@@ -193,7 +197,7 @@ class Experiment:
 
         self._last_full_hash = hash
         self._cache.merge_hashes(curr_local_hash, hash)
-
+        
         return hash
 
     def get_dir(self):
