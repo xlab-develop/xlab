@@ -9,13 +9,13 @@ requires_list = [
 
 setuptools.setup(
 	name="xlab",
-	version="0.0.17",
+	version="0.0.18",
 	author="Cesar Salcedo",
-	author_email="cesar.salcedo@utec.edu.pe",
+	author_email="research.at.xlab@gmail.com",
 	description="Experiment execution tool for automation in research-oriented projects.",
 	long_description=long_description,
 	long_description_content_type="text/markdown",
-	url="https://github.com/csalcedo001/xlab",
+	url="https://github.com/xlab-develop/xlab",
 	packages=setuptools.find_packages(),
 	classifiers=[
 		"Programming Language :: Python :: 3",
