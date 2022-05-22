@@ -13,12 +13,14 @@ def sort_args(args):
         args: regular dictionary.
     """
 
+    # Note dicts are sorted recursivelly within lists and dicts
     args = copy.deepcopy(args)
     if type(args) == dict:
         for key in args:
             args[key] = sort_args(args[key])
         return sorted(args.items())
     if type(args) == list:
+        # Lists are not sorted, they might encode positional info
         return [sort_args(x) for x in args]
 
     return args
@@ -89,6 +91,8 @@ class Cache:
         hash = get_hash(args_or_hash)
         hashmap = self.hashmap_loader.load()
 
+        # Note that run's hashmap output is a list, and completion
+        # status is saved on the 2nd slot.
         return hash in hashmap and hashmap[hash][1]
 
     def get_dir(self, args_or_hash):
@@ -102,6 +106,8 @@ class Cache:
         hashmap = self.hashmap_loader.load()
 
         if hash in hashmap:
+            # Note that run's hashmap output is a list, and the run's
+            # dir is saved on the 1st slot.
             return hashmap[hash][0]
         else:
             raise Exception('error: Hash not found in cache.')
@@ -120,7 +126,12 @@ class Cache:
         hash = get_hash(args)
 
         hashmap = self.hashmap_loader.load_and_lock_acquire()
+        ##### Start of critical region
+
+        # The hash is assigned a run's path and completion status
         hashmap[hash] = [path, False]
+
+        ##### End of critical region
         self.hashmap_loader.save_and_lock_release(hashmap)
         
         return path
@@ -135,7 +146,12 @@ class Cache:
         hash = get_hash(args_or_hash)
 
         hashmap = self.hashmap_loader.load_and_lock_acquire()
+        ##### Start of critical region
+
+        # Update completion status from hash
         hashmap[hash][1] = True
+
+        ##### End of critical region
         self.hashmap_loader.save_and_lock_release(hashmap)
 
     def merge_hashes(self, new_hash, old_hash):
@@ -149,5 +165,11 @@ class Cache:
         """
 
         hashmap = self.hashmap_loader.load_and_lock_acquire()
+        ##### Start of critical region
+
+        # Copy save dir and completion status assigned from old_hash
+        # to new_hash
         hashmap[new_hash] = hashmap[old_hash]
+
+        ##### End of critical region
         self.hashmap_loader.save_and_lock_release(hashmap)

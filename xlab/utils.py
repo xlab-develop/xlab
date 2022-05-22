@@ -22,6 +22,7 @@ def merge_dicts(a, b, output_type=None):
     a_type = type(a)
     b_type = type(b)
 
+    # If args are a Namespace, they are turned into a dict
     if a_type == Namespace:
         a = dict(vars(a))
     if b_type == Namespace:
@@ -29,6 +30,7 @@ def merge_dicts(a, b, output_type=None):
 
     a = copy.deepcopy(a)
 
+    # Recursively merge dicts within other dicts
     for key in b:
         val = b[key]
         if type(val) == dict and key in a and type(a[key]) == dict:
@@ -36,6 +38,7 @@ def merge_dicts(a, b, output_type=None):
         else:
             a[key] = val
 
+    # Transform to desired output type
     if output_type == None:
         output_type = a_type
     if output_type == Namespace:
