@@ -3,7 +3,7 @@ import hashlib
 import copy
 import os
 
-from . import filesys
+from xlab import filesys
 
 
 def sort_args(args):

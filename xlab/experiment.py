@@ -7,9 +7,9 @@ import traceback
 import fasteners
 from datetime import datetime
 
-from . import cache, filesys
-from .cache import Cache
-from .utils import merge_dicts, substract_dict_keys
+from xlab import cache, filesys
+from xlab.cache import Cache
+from xlab.utils import merge_dicts, substract_dict_keys
 
 DEFAULT_INDEX_KEYS = ['executable']
 DEFAULT_ARGS_KEYS = [

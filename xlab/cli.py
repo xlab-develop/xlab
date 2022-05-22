@@ -1,7 +1,7 @@
 import sys
 import os
 
-from . import filesys
+from xlab import filesys
 
 MAIN_USAGE_MESSAGE = """
 usage: xlab command ...
