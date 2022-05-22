@@ -1,7 +1,6 @@
 from argparse import Namespace
 import copy
-import sys
-import os
+
 
 def merge_dicts(a, b, output_type=None):
     a_type = type(a)
@@ -27,6 +26,7 @@ def merge_dicts(a, b, output_type=None):
         a = Namespace(**a)
 
     return a
+
 
 def substract_dict_keys(a, keys):
     a = copy.deepcopy(a)

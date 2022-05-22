@@ -6,6 +6,7 @@ import fasteners
 
 _dirs = {}
 
+
 def find_root_dir():
     try:
         filename = os.path.realpath(sys.argv[0])
@@ -25,6 +26,7 @@ def find_root_dir():
     
     return curr_dir
 
+
 def relative_root_path(path):
     path = os.path.realpath(path)
     root = dirs.root()
@@ -33,9 +35,12 @@ def relative_root_path(path):
         root = root + os.sep
     
     if len(path) < len(root) or path[:len(root)] != root:
-        raise Exception("error: Path does not belong to project. Received {} which was expected to be found within {}.".format(path, root))
+        raise Exception(
+            "error: Path does not belong to project. Received {} \
+            which was expected to be found within {}.".format(path, root))
 
     return path[len(root):]
+
 
 
 class Directories:
@@ -57,13 +62,16 @@ class Directories:
     
     def root(self):
         if not self._init_q:
-            print("error: Could not find '.exp' folder. Try running 'xlab project init' on your project root directory.")
+            print(
+                "error: Could not find '.exp' folder. Try running \
+                'xlab project init' on your project root directory.")
             exit(1)
         return _dirs['root']
 
     def exp_path(self):
         if not self._init_q:
-            print("error: Could not find '.exp' folder. Try running 'xlab project init' on your project root directory.")
+            print("error: Could not find '.exp' folder. Try running \
+                'xlab project init' on your project root directory.")
             exit(1)
         return _dirs['exp']
 

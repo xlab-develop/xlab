@@ -5,6 +5,7 @@ import os
 
 from . import filesys
 
+
 def sort_args(args):
     args = copy.deepcopy(args)
     if type(args) == dict:
@@ -16,10 +17,14 @@ def sort_args(args):
 
     return args
 
+
+
 # Cache functions
 def get_args_hash(args):
-    hash = hashlib.sha224(json.dumps(sort_args(args), separators=(',', ':')).encode('utf-8')).hexdigest()
+    json_string = json.dumps(sort_args(args), separators=(',', ':'))
+    hash = hashlib.sha224(json_string.encode('utf-8')).hexdigest()
     return hash
+
 
 def get_hash(args_or_hash):
     if type(args_or_hash) == dict:
@@ -29,11 +34,15 @@ def get_hash(args_or_hash):
     
     return hash
 
+
+
 # Cache class
 class Cache:
     def __init__(self):
-        self.metadata_loader = filesys.MetadataLoader(filesys.dirs.exp_path(), 'metadata')
-        self.hashmap_loader = filesys.HashmapLoader(filesys.dirs.exp_path(), 'hashmap')
+        self.metadata_loader = filesys.MetadataLoader(
+            filesys.dirs.exp_path(), 'metadata')
+        self.hashmap_loader = filesys.HashmapLoader(
+            filesys.dirs.exp_path(), 'hashmap')
 
     def exists(self, args_or_hash):
         hash = get_hash(args_or_hash)

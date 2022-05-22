@@ -1,6 +1,5 @@
 from subprocess import Popen, PIPE, STDOUT
 from argparse import Namespace
-import copy
 import json
 import sys
 import os
@@ -13,8 +12,12 @@ from .cache import Cache
 from .utils import merge_dicts, substract_dict_keys
 
 DEFAULT_INDEX_KEYS = ['executable']
-DEFAULT_ARGS_KEYS = ['exp_config', 'exp_dir', 'exp_is_complete', 'exp_force', 'exp_no_wait', 'exp_hash']
+DEFAULT_ARGS_KEYS = [
+    'exp_config', 'exp_dir', 'exp_is_complete',
+    'exp_force', 'exp_no_wait', 'exp_hash'
+]
 DEFAULT_CONFIG_KEYS = ['exp_time']
+
 
 def init_args(executable):
     args = {
@@ -23,17 +26,31 @@ def init_args(executable):
     }
     return args
 
+
 def setup(*args, **kwargs):
     return Setup(*args, **kwargs)
 
+
 class Setup:
     def __init__(self, parser, hash_ignore=[]):
-        parser.add_argument("--exp-config", default='{}', type=json.loads)
-        parser.add_argument("--exp-dir", default=False, action="store_const", const=True)
-        parser.add_argument("--exp-is-complete", default=False, action="store_const", const=True)
-        parser.add_argument("--exp-force", default=False, action="store_const", const=True)
-        parser.add_argument("--exp-no-wait", default=False, action="store_const", const=True)
-        parser.add_argument("--exp-hash", default=False, action="store_const", const=True)
+        parser.add_argument(
+            "--exp-config", default='{}',
+            type=json.loads)
+        parser.add_argument(
+            "--exp-dir", default=False,
+            action="store_const", const=True)
+        parser.add_argument(
+            "--exp-is-complete", default=False,
+            action="store_const", const=True)
+        parser.add_argument(
+            "--exp-force", default=False,
+            action="store_const", const=True)
+        parser.add_argument(
+            "--exp-no-wait", default=False,
+            action="store_const", const=True)
+        parser.add_argument(
+            "--exp-hash", default=False,
+            action="store_const", const=True)
 
         self.parser = parser
 
@@ -53,17 +70,27 @@ class Setup:
 
         self._all_args = args
 
-        user_args = substract_dict_keys(args, DEFAULT_ARGS_KEYS + DEFAULT_CONFIG_KEYS + DEFAULT_INDEX_KEYS)
-        config_args = substract_dict_keys(args, DEFAULT_ARGS_KEYS)
-        hash_args = substract_dict_keys(args, DEFAULT_ARGS_KEYS + DEFAULT_CONFIG_KEYS + self._hash_ignore)
+        user_args = substract_dict_keys(
+            args, 
+            DEFAULT_ARGS_KEYS + DEFAULT_CONFIG_KEYS + DEFAULT_INDEX_KEYS)
+        config_args = substract_dict_keys(
+            args,
+            DEFAULT_ARGS_KEYS)
+        hash_args = substract_dict_keys(
+            args,
+            DEFAULT_ARGS_KEYS + DEFAULT_CONFIG_KEYS + self._hash_ignore)
         
         self.args = Namespace(**user_args)
         
 
         exists = self._cache.exists(hash_args)
-        self.dir = self._cache.get_dir(hash_args) if exists else self._cache.assign_dir(hash_args)
+        if exists:
+            self.dir = self._cache.get_dir(hash_args)
+        else:
+            self.dir = self._cache.assign_dir(hash_args)
         
-        input_hash_args = substract_dict_keys(input_config_args, DEFAULT_CONFIG_KEYS + self._hash_ignore)
+        input_hash_args = substract_dict_keys(
+            input_config_args, DEFAULT_CONFIG_KEYS + self._hash_ignore)
         input_hash = cache.get_hash(input_hash_args)
         if not self._cache.exists(input_hash):
             self._cache.merge_hashes(input_hash, cache.get_hash(hash_args))
@@ -87,7 +114,8 @@ class Setup:
             print(self._cache.is_complete(hash_args))
             exit(0)
 
-        self._run_lock = fasteners.InterProcessLock(os.path.join(self.dir, '.run.lock'))
+        self._run_lock = fasteners.InterProcessLock(
+            os.path.join(self.dir, '.run.lock'))
         self._run_lock.acquire()
 
         err_filename = os.path.join(self.dir, 'error.log')
@@ -101,10 +129,10 @@ class Setup:
         
         return self
     
-    
     def __exit__(self, exc_type, exc_value, tb):
         if exc_type is not None:
-            tb_message = ''.join(traceback.format_exception(exc_type, exc_value, tb))
+            tb_message = ''.join(
+                traceback.format_exception(exc_type, exc_value, tb))
             err_filename = os.path.join(self.dir, 'error.log')
             with open(err_filename, 'w') as err_file:
                 err_file.write(tb_message)
@@ -112,7 +140,9 @@ class Setup:
             self._run_lock.release()
             return False
         
-        hash_args = substract_dict_keys(self._all_args, DEFAULT_CONFIG_KEYS + DEFAULT_ARGS_KEYS + self._hash_ignore)
+        hash_args = substract_dict_keys(
+            self._all_args,
+            DEFAULT_CONFIG_KEYS + DEFAULT_ARGS_KEYS + self._hash_ignore)
 
         self._cache.set_complete(hash_args)
 
@@ -138,7 +168,9 @@ class Experiment:
         with open(path, 'r') as in_file:
             self.args = json.load(in_file)
 
-    def run(self, custom_command=None, use_cached=True, wait=True):
+    def run(
+            self, custom_command=None,
+            use_cached=True, wait=True):
         tmp_args = init_args(self.executable)
         tmp_args = merge_dicts(tmp_args, self.args)
 
@@ -156,7 +188,8 @@ class Experiment:
 
     def get_hash(self):
         curr_local_hash = cache.get_hash(self.args)
-        if curr_local_hash == self._last_local_hash and self._last_full_hash is not None:
+        if (curr_local_hash == self._last_local_hash and
+                self._last_full_hash is not None):
             return self._last_full_hash
         self._last_local_hash = curr_local_hash
 
