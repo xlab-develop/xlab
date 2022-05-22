@@ -11,18 +11,26 @@ from xlab import cache, filesys
 from xlab.cache import Cache
 from xlab.utils import merge_dicts, substract_dict_keys
 
-DEFAULT_INDEX_KEYS = ['executable']
-DEFAULT_ARGS_KEYS = [
-    'exp_config', 'exp_dir', 'exp_is_complete',
-    'exp_force', 'exp_no_wait', 'exp_hash'
+DEFAULT_INDEX_KEYS = [
+    'executable',
 ]
-DEFAULT_CONFIG_KEYS = ['exp_time']
+DEFAULT_ARGS_KEYS = [
+    'exp_config',
+    'exp_dir',
+    'exp_is_complete',
+    'exp_force',
+    'exp_no_wait',
+    'exp_hash',
+]
+DEFAULT_CONFIG_KEYS = [
+    'exp_time',
+]
 
 
 def init_args(executable):
     args = {
         'executable': executable,
-        'exp_time': datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
+        'exp_time': datetime.now().strftime('%Y-%m-%d_%H-%M-%S'),
     }
     return args
 
