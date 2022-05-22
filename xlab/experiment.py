@@ -28,6 +28,12 @@ DEFAULT_CONFIG_KEYS = [
 
 
 def init_args(executable):
+    """Returns a dict filled with basic default run data.
+
+    Args:
+        executable: path to executable for the run.
+    """
+
     args = {
         'executable': executable,
         'exp_time': datetime.now().strftime('%Y-%m-%d_%H-%M-%S'),
@@ -36,11 +42,25 @@ def init_args(executable):
 
 
 def setup(*args, **kwargs):
+    """Returns an instance of a Setup class."""
+
     return Setup(*args, **kwargs)
 
 
 class Setup:
     def __init__(self, parser, hash_ignore=[]):
+        """Initializes the experiment retrieval setup.
+
+        The experiment setup is defined as a function of a parser
+        because it automatically parses the input on a call to
+        __enter__. For this reason, we expect the parser to be already
+        initialized prior to the instantiation of this class.
+
+        Args:
+            parser: already initialized argpase parser.
+            hash_ignore: keys not to be considered while hashing.
+        """
+
         parser.add_argument(
             '--exp-config', default='{}',
             type=json.loads)
@@ -67,6 +87,12 @@ class Setup:
         self._run_lock = None
     
     def __enter__(self):
+        """Opens the context of a run within a 'with' statement.
+        
+        This call automatically parses the input arguments, and
+        assigns a new directory to the run for results to be saved.
+        """
+
         executable = filesys.relative_root_path(sys.argv[0])
 
         default_args = init_args(executable)
@@ -138,6 +164,12 @@ class Setup:
         return self
     
     def __exit__(self, exc_type, exc_value, tb):
+        """Closes run context and catches errors.
+        
+        If the run of an experiment is completed successfully, the
+        results are cached. If not, the error is catched and thrown.
+        """
+
         if exc_type is not None:
             tb_message = ''.join(
                 traceback.format_exception(exc_type, exc_value, tb))
@@ -162,6 +194,33 @@ class Setup:
 
 class Experiment:
     def __init__(self, executable, req_args, command):
+        """Initializes the experiment run setup.
+
+        The experiment arguments are set from initialization to have
+        it ready to be run later, with few updates to the arguments.
+
+        Args:
+            executable: string of experiment executable path.
+            req_args: dict of required arguments on command call.
+            command: template string of the command to be executed for
+                the experiment to run. As it is a template, keys
+                within the string are replaced by its values from the
+                experiment arguments. Note that the executable name
+                is also replaced in the string.
+                
+                Example:
+
+                command='python {executable} {arg1} {arg2}'
+
+                One can run an instance of the experiment by providing
+                arguments, such as:
+                    * executable='main.py'
+                    * req_args={
+                        'arg1': 10,
+                        'arg2': 'a'
+                    }
+        """
+
         self.executable = filesys.relative_root_path(executable)
         self.command = command
         self.args = req_args
@@ -179,6 +238,25 @@ class Experiment:
     def run(
             self, custom_command=None,
             use_cached=True, wait=True):
+        """Runs an experiment for the current argument setup.
+
+        The dictionary self.args can be modified by the user freely,
+        as an interface for creating a series of experiments. Whenever
+        this method is called, the current state of self.args is used
+        to run an execution instance for the experiment.
+        
+        Args:
+            custom_command: string representing a command to run the
+                the experiment. Used when the default command given
+                at experiment initialization does not fit the desired
+                usage of the run.
+            use_cached: boolean that allows the experiment results to
+                be retrieved in case they are cached if set to true.
+            wait: boolean that enables experiments to wait for
+                previous experiments to finish running before starting
+                its execution.
+        """
+
         tmp_args = init_args(self.executable)
         tmp_args = merge_dicts(tmp_args, self.args)
 
@@ -195,6 +273,8 @@ class Experiment:
         out, err = exe.communicate()
 
     def get_hash(self):
+        """Returns the hash identifier of a run."""
+
         curr_local_hash = cache.get_hash(self.args)
         if (curr_local_hash == self._last_local_hash and
                 self._last_full_hash is not None):
@@ -238,7 +318,11 @@ class Experiment:
         return hash
 
     def get_dir(self):
+        """Returns the directory assigned to a run."""
+
         return self._cache.get_dir(self.get_hash())
 
     def is_complete(self):
+        """Returns true if the run has been completed."""
+
         return self._cache.is_complete(self.get_hash())

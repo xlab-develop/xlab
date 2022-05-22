@@ -15,6 +15,12 @@ positional arguments:
 
 
 def project(args):
+    """Project-related CLI sub-command.
+    
+    Args:
+        args: dictionary of CLI arguments.
+    """
+
     if len(args) != 1:
         print('error: Invalid arguments.')
         exit()
@@ -27,6 +33,8 @@ def project(args):
 
 
 def main():
+    """Main call to CLI command."""
+
     if len(sys.argv) <= 1:
         print(MAIN_USAGE_MESSAGE)
         exit()

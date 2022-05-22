@@ -7,6 +7,12 @@ from xlab import filesys
 
 
 def sort_args(args):
+    """Sorts keys from dicts (including nested dicts).
+    
+    Args:
+        args: regular dictionary.
+    """
+
     args = copy.deepcopy(args)
     if type(args) == dict:
         for key in args:
@@ -21,12 +27,27 @@ def sort_args(args):
 
 # Cache functions
 def get_args_hash(args):
+    """Returns a unique identifier (hash) for a dict.
+    
+    Args:
+        args: JSON-like dictionary.
+    """
+
     json_string = json.dumps(sort_args(args), separators=(',', ':'))
     hash = hashlib.sha224(json_string.encode('utf-8')).hexdigest()
     return hash
 
 
 def get_hash(args_or_hash):
+    """Returns a hash-like string from either a dict or string.
+
+    In case args_or_hash is already an string, it is assumed to be
+    a hash.
+    
+    Args:
+        args_or_hash: input dict or hash-like string.
+    """
+
     if type(args_or_hash) == dict:
         hash = get_args_hash(args_or_hash)
     elif type(args_or_hash) == str:
@@ -39,24 +60,44 @@ def get_hash(args_or_hash):
 # Cache class
 class Cache:
     def __init__(self):
+        """Sets up cache."""
+
         self.metadata_loader = filesys.MetadataLoader(
             filesys.dirs.exp_path(), 'metadata')
         self.hashmap_loader = filesys.HashmapLoader(
             filesys.dirs.exp_path(), 'hashmap')
 
     def exists(self, args_or_hash):
+        """Determines if hash is found on cache.
+        
+        Args:
+            args_or_hash: input dict or hash-like string.
+        """
+
         hash = get_hash(args_or_hash)
         hashmap = self.hashmap_loader.load()
 
         return hash in hashmap
 
     def is_complete(self, args_or_hash):
+        """Determines if a run identified by a hash has completed.
+        
+        Args:
+            args_or_hash: input dict or hash-like string.
+        """
+
         hash = get_hash(args_or_hash)
         hashmap = self.hashmap_loader.load()
 
         return hash in hashmap and hashmap[hash][1]
 
     def get_dir(self, args_or_hash):
+        """Returns the directory associated with the hash.
+        
+        Args:
+            args_or_hash: input dict or hash-like string.
+        """
+
         hash = get_hash(args_or_hash)
         hashmap = self.hashmap_loader.load()
 
@@ -65,7 +106,15 @@ class Cache:
         else:
             raise Exception('error: Hash not found in cache.')
 
+
+
     def assign_dir(self, args):
+        """Assigns a new directory to a run.
+
+        Args:
+            args: input dict that represents a run.
+        """
+
         id = self.metadata_loader.next_id()
         path = os.path.join(filesys.dirs.runs_path(), str(id))
         hash = get_hash(args)
@@ -77,6 +126,12 @@ class Cache:
         return path
 
     def set_complete(self, args_or_hash):
+        """Sets a run represented by a hash as complete.
+
+        Args:
+            args_or_hash: input dict or hash-like string.
+        """
+
         hash = get_hash(args_or_hash)
 
         hashmap = self.hashmap_loader.load_and_lock_acquire()
@@ -84,6 +139,15 @@ class Cache:
         self.hashmap_loader.save_and_lock_release(hashmap)
 
     def merge_hashes(self, new_hash, old_hash):
+        """Assigns the same cache bucket to both hashes.
+
+        In detail, new_hash is assigned the same bucket as old_hash.
+        For this reason, any bucket assigned to new_hash is lost.
+
+        Args:
+            args_or_hash: input dict or hash-like string.
+        """
+
         hashmap = self.hashmap_loader.load_and_lock_acquire()
         hashmap[new_hash] = hashmap[old_hash]
         self.hashmap_loader.save_and_lock_release(hashmap)

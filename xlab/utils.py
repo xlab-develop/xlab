@@ -3,6 +3,22 @@ import copy
 
 
 def merge_dicts(a, b, output_type=None):
+    """Merges one dict's args into the other.
+
+    Merges dict b's args into a's, effectively replacing existing keys
+    in a if they are also present in b.
+
+    Args:
+        a: dict or Namespace into which arguments will be marged
+            from b.
+        b: dict or Namespace from which new arguments will be added
+            to a.
+        output_type: merge output type. Can be any of:
+            * None: input type from base dict a.
+            * dict: returns a plain dict object.
+            * Namespace: transforms the output to a Namespace object.
+    """
+
     a_type = type(a)
     b_type = type(b)
 
@@ -29,6 +45,15 @@ def merge_dicts(a, b, output_type=None):
 
 
 def substract_dict_keys(a, keys):
+    """Removes keys from a.
+
+    If some key is not present in a, it is ignored.
+
+    Args:
+        a: regular dictionary.
+        keys: list of strings representing keys in a.
+    """
+
     a = copy.deepcopy(a)
     for key in keys:
         if key in a:
