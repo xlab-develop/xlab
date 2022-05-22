@@ -16,7 +16,7 @@ positional arguments:
 
 def project(args):
     if len(args) != 1:
-        print("error: Invalid arguments.")
+        print('error: Invalid arguments.')
         exit()
     
     if args[0] == 'init':

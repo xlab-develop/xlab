@@ -36,8 +36,8 @@ def relative_root_path(path):
     
     if len(path) < len(root) or path[:len(root)] != root:
         raise Exception(
-            "error: Path does not belong to project. Received {} \
-            which was expected to be found within {}.".format(path, root))
+            'error: Path does not belong to project. Received {} ' \
+            'which was expected to be found within {}.'.format(path, root))
 
     return path[len(root):]
 
@@ -63,15 +63,16 @@ class Directories:
     def root(self):
         if not self._init_q:
             print(
-                "error: Could not find '.exp' folder. Try running \
-                'xlab project init' on your project root directory.")
+                "error: Could not find '.exp' folder. Try running " \
+                "'xlab project init' on your project root directory.")
             exit(1)
         return _dirs['root']
 
     def exp_path(self):
         if not self._init_q:
-            print("error: Could not find '.exp' folder. Try running \
-                'xlab project init' on your project root directory.")
+            print(
+                "error: Could not find '.exp' folder. Try running " \
+                "'xlab project init' on your project root directory.")
             exit(1)
         return _dirs['exp']
 

@@ -1,4 +1,4 @@
-from subprocess import Popen, PIPE, STDOUT
+from subprocess import Popen, PIPE
 from argparse import Namespace
 import json
 import sys
@@ -22,7 +22,7 @@ DEFAULT_CONFIG_KEYS = ['exp_time']
 def init_args(executable):
     args = {
         'executable': executable,
-        'exp_time': datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+        'exp_time': datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
     }
     return args
 
@@ -34,23 +34,23 @@ def setup(*args, **kwargs):
 class Setup:
     def __init__(self, parser, hash_ignore=[]):
         parser.add_argument(
-            "--exp-config", default='{}',
+            '--exp-config', default='{}',
             type=json.loads)
         parser.add_argument(
-            "--exp-dir", default=False,
-            action="store_const", const=True)
+            '--exp-dir', default=False,
+            action='store_const', const=True)
         parser.add_argument(
-            "--exp-is-complete", default=False,
-            action="store_const", const=True)
+            '--exp-is-complete', default=False,
+            action='store_const', const=True)
         parser.add_argument(
-            "--exp-force", default=False,
-            action="store_const", const=True)
+            '--exp-force', default=False,
+            action='store_const', const=True)
         parser.add_argument(
-            "--exp-no-wait", default=False,
-            action="store_const", const=True)
+            '--exp-no-wait', default=False,
+            action='store_const', const=True)
         parser.add_argument(
-            "--exp-hash", default=False,
-            action="store_const", const=True)
+            '--exp-hash', default=False,
+            action='store_const', const=True)
 
         self.parser = parser
 
@@ -181,7 +181,7 @@ class Experiment:
             command_parts.append('--exp-force')
         if not wait:
             command_parts.append('--exp-no-wait')
-        command_parts += ["--exp-config", "{}".format(json.dumps(self.args))]
+        command_parts += ['--exp-config', '{}'.format(json.dumps(self.args))]
         
         exe = Popen(command_parts, stdout=PIPE, stderr=PIPE)
         out, err = exe.communicate()
@@ -201,8 +201,8 @@ class Experiment:
 
         command = self.command.format(**tmp_args)
         command_parts = command.split(' ')
-        command_parts.append("--exp-hash")
-        command_parts += ["--exp-config", "{}".format(json.dumps(self.args))]
+        command_parts.append('--exp-hash')
+        command_parts += ['--exp-config', '{}'.format(json.dumps(self.args))]
 
         exe = Popen(command_parts, stdout=PIPE, stderr=PIPE)
         out, err = exe.communicate()
@@ -214,7 +214,7 @@ class Experiment:
             if len(err) > 0:
                 raise Exception(err_msg)
             else:
-                raise Exception("error: Command did not print an output.")
+                raise Exception('error: Command did not print an output.')
 
         hash = lines[-2]
 
@@ -222,7 +222,7 @@ class Experiment:
             if len(err) > 0:
                 raise Exception(err_msg)
             else:
-                raise Exception("error: Command returned invalid hash.")
+                raise Exception('error: Command returned invalid hash.')
 
         self._last_full_hash = hash
         self._cache.merge_hashes(curr_local_hash, hash)
