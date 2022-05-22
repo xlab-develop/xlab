@@ -1,1 +1,1 @@
-from . import experiment
+from xlab import experiment
