@@ -8,12 +8,15 @@ import fasteners
 _dirs = {}
 
 
-def find_root_dir():
+def find_root_dir(path=None):
     """Returns the location of the project directory if found."""
 
+    if path == None:
+        path = sys.argv[0]
+    
     # Get the current working directory
     try:
-        filename = os.path.realpath(sys.argv[0])
+        filename = os.path.realpath(path)
         dirname = os.path.dirname(filename) if os.path.isfile(filename) else filename
 
         curr_dir = dirname
