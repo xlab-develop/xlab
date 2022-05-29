@@ -1,4 +1,5 @@
 import os
+import shutil
 
 import pytest
 import json
@@ -58,9 +59,19 @@ def project_setup(tmpdir, request):
 
         os.makedirs(path, exist_ok=True)
     
-    os.chdir(path)
+    future_curdir = path
 
-    return tmpdir
+    dirname = os.path.dirname(os.path.realpath(__file__))
+    template_path = os.path.join(dirname, 'script_templates', 'main.py')
+    script_path = os.path.join(future_curdir, 'main.py')
+
+    shutil.copyfile(template_path, script_path)
+
+    return {
+        'root': tmpdir,
+        'curdir': future_curdir,
+        'script': script_path,
+    }
 
 
 
@@ -112,21 +123,32 @@ def test_relative_root_path(dir_structure, path):
     assert dir_structure
 
 
+
 ### class Directories
 
+@pytest.mark.skip(reason='probably unnecessary test')
 @pytest.mark.parametrize('project_setup', [([])], indirect=True)
 def test_directories_init(project_setup):
     directories = Directories()
 
-    assert os.path.exists(os.path.join(project_setup, '.exp'))
+    assert os.path.exists(os.path.join(project_setup['root'], '.exp'))
 
 
-@pytest.mark.skip(reason='need to figure out how to run an executable from tmpdir')
+@pytest.mark.parametrize('project_setup', [([])], indirect=True)
+def test_directories_set_root(project_setup):
+    directories = Directories()
+    directories.set_root(project_setup['root'])
+
+    assert os.path.exists(os.path.join(project_setup['root'], '.exp'))
+
+
+# @pytest.mark.skip(reason='need to figure out how to run an executable from tmpdir')
 @pytest.mark.parametrize('project_setup', [(['a', 'b']), (['a'], ['b', 'a'])], indirect=True)
 def test_directories_root(project_setup):
+    os.chdir(project_setup['curdir'])
     directories = Directories()
 
-    assert directories.root() == project_setup
+    assert directories.root() == project_setup['root']
 
 
 @pytest.mark.skip(reason='need to figure out how to run an executable from tmpdir')
@@ -134,7 +156,7 @@ def test_directories_root(project_setup):
 def test_directories_exp_path(project_setup):
     directories = Directories()
 
-    assert directories.exp_path() == os.path.join(project_setup, '.exp')
+    assert directories.exp_path() == os.path.join(project_setup['root'], '.exp')
 
 
 @pytest.mark.skip(reason='need to figure out how to run an executable from tmpdir')
@@ -142,11 +164,12 @@ def test_directories_exp_path(project_setup):
 def test_directories_runs_path(project_setup):
     directories = Directories()
 
-    runs_path = os.path.join(project_setup, 'runs')
+    runs_path = os.path.join(project_setup['root'], 'runs')
 
     assert not os.path.exists(runs_path)
     assert directories.runs_path() == runs_path
     assert os.path.exists(runs_path)
+
 
 
 ### class MetadataLoader
@@ -177,6 +200,7 @@ def test_metadataloader_next_id(tmpdir):
         metadata = json.load(in_file)
 
     assert metadata['next_id'] == 1
+
 
 
 ### class HashmapLoader
