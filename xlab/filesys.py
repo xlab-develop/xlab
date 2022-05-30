@@ -69,7 +69,7 @@ class Directories:
         if path == None:
             abs_path = os.path.abspath((inspect.stack()[0])[1])
             path = os.path.dirname(abs_path)
-
+        
         # Project path
         root = find_root_dir(path)
 

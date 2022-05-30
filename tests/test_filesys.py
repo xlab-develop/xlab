@@ -1,13 +1,13 @@
 import os
-import shutil
 
 import pytest
 import json
 import pickle
 
 from xlab.filesys import find_root_dir, Directories, MetadataLoader, HashmapLoader
+from xlab.filesys import dirs
 
-from .fixtures import project_setup
+from .fixtures import project_setup, xlab_project_missing, xlab_project_init
 
 
 
@@ -100,45 +100,33 @@ def test_relative_root_path(dir_structure, path):
 
 ### class Directories
 
-@pytest.mark.skip(reason='probably unnecessary test')
-@pytest.mark.parametrize('project_setup', [([])], indirect=True)
-def test_directories_init(project_setup):
-    directories = Directories()
+def test_directories_set_root(xlab_project_missing):
+    directories = Directories(xlab_project_missing['curdir'])
+    directories.set_root(xlab_project_missing['root'])
 
-    assert os.path.exists(os.path.join(project_setup['root'], '.exp'))
+    exp_path = os.path.join(xlab_project_missing['root'], '.exp')
 
-
-@pytest.mark.parametrize('project_setup', [([])], indirect=True)
-def test_directories_set_root(project_setup):
-    directories = Directories()
-    directories.set_root(project_setup['root'])
-
-    assert os.path.exists(os.path.join(project_setup['root'], '.exp'))
+    assert os.path.exists(exp_path)
 
 
-# @pytest.mark.skip(reason='need to figure out how to run an executable from tmpdir')
-@pytest.mark.parametrize('project_setup', [(['a', 'b']), (['a'], ['b', 'a'])], indirect=True)
-def test_directories_root(project_setup):
-    os.chdir(project_setup['curdir'])
-    directories = Directories()
+def test_directories_root(xlab_project_init):
+    directories = Directories(xlab_project_init['curdir'])
 
-    assert directories.root() == project_setup['root']
+    root = directories.root()
+    assert root == xlab_project_init['root']
 
 
-@pytest.mark.skip(reason='need to figure out how to run an executable from tmpdir')
-@pytest.mark.parametrize('project_setup', [(['a', 'b']), (['a'], ['b', 'a'])], indirect=True)
-def test_directories_exp_path(project_setup):
-    directories = Directories()
+def test_directories_exp_path(xlab_project_init):
+    directories = Directories(xlab_project_init['root'])
 
-    assert directories.exp_path() == os.path.join(project_setup['root'], '.exp')
+    exp_path = os.path.join(xlab_project_init['root'], '.exp')
+    assert directories.exp_path() == exp_path
 
 
-@pytest.mark.skip(reason='need to figure out how to run an executable from tmpdir')
-@pytest.mark.parametrize('project_setup', [(['a', 'b']), (['a'], ['b', 'a'])], indirect=True)
-def test_directories_runs_path(project_setup):
-    directories = Directories()
+def test_directories_runs_path(xlab_project_init):
+    directories = Directories(xlab_project_init['curdir'])
 
-    runs_path = os.path.join(project_setup['root'], 'runs')
+    runs_path = os.path.join(xlab_project_init['root'], 'runs')
 
     assert not os.path.exists(runs_path)
     assert directories.runs_path() == runs_path
@@ -147,6 +135,7 @@ def test_directories_runs_path(project_setup):
 
 
 ### class MetadataLoader
+
 def test_metadataloader_init(tmpdir):
     name = 'metadata'
     MetadataLoader(tmpdir, name)
@@ -178,6 +167,7 @@ def test_metadataloader_next_id(tmpdir):
 
 
 ### class HashmapLoader
+
 def test_hashmaploader_init(tmpdir):
     name = 'hashmap'
     HashmapLoader(tmpdir, name)
