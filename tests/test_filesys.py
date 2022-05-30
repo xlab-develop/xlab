@@ -7,7 +7,7 @@ import pickle
 from xlab.filesys import find_root_dir, Directories, MetadataLoader, HashmapLoader
 from xlab.filesys import dirs
 
-from .fixtures import project_setup, xlab_project_missing, xlab_project_init
+from .fixtures import xlab_project_missing, xlab_project_init
 
 
 

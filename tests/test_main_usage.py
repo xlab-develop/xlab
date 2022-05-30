@@ -3,15 +3,14 @@ import os
 import pytest
 import json
 
-from .fixtures import project_setup
+from .fixtures import xlab_project_missing, xlab_project_init
 
 
-@pytest.mark.parametrize('project_setup', [([])], indirect=True)
-def test_runs_dir_created(project_setup):
-    path = project_setup['curdir']
+def test_runs_dir_created(xlab_project_init):
+    path = xlab_project_init['curdir']
     sampler_path = os.path.join(path, 'sampler.py')
 
-    runs_path = os.path.join(project_setup['root'], 'runs')
+    runs_path = os.path.join(xlab_project_init['root'], 'runs')
 
     assert not os.path.exists(runs_path)
 
@@ -21,14 +20,13 @@ def test_runs_dir_created(project_setup):
 
 
 @pytest.mark.parametrize('reps', [1, 10, 100])
-@pytest.mark.parametrize('project_setup', [([])], indirect=True)
-def test_run_results_saved(project_setup, reps):
-    path = project_setup['curdir']
+def test_run_results_saved(xlab_project_init, reps):
+    path = xlab_project_init['curdir']
     sampler_path = os.path.join(path, 'sampler.py')
     
     os.system('python {} linear 0 --repetitions {}'.format(sampler_path, reps))
 
-    test_results_path = os.path.join(project_setup['root'], 'test_data.json')
+    test_results_path = os.path.join(xlab_project_init['root'], 'test_data.json')
     with open(test_results_path, 'r') as in_file:
         test_results = json.load(in_file)
     
@@ -36,15 +34,13 @@ def test_run_results_saved(project_setup, reps):
     assert test_results['sampler_data'][0]['data'] == [0 for _ in range(reps)]
 
 
-@pytest.mark.parametrize('project_setup', [([])], indirect=True)
-def test_run_once_cached(project_setup):
-    path = project_setup['curdir']
+def test_run_once_cached(xlab_project_init):
+    path = xlab_project_init['curdir']
     sampler_path = os.path.join(path, 'sampler.py')
     
     os.system('python {} linear 0'.format(sampler_path))
 
-
-    test_results_path = os.path.join(project_setup['root'], 'test_data.json')
+    test_results_path = os.path.join(xlab_project_init['root'], 'test_data.json')
     with open(test_results_path, 'r') as in_file:
         test_results = json.load(in_file)
 
@@ -58,37 +54,13 @@ def test_run_once_cached(project_setup):
     assert test_results['sampler_calls'] == 1
 
 
-@pytest.mark.parametrize('project_setup', [([])], indirect=True)
-def test_run_force_repeated(project_setup):
-    path = project_setup['curdir']
+def test_run_force_repeated(xlab_project_init):
+    path = xlab_project_init['curdir']
     sampler_path = os.path.join(path, 'sampler.py')
     
     os.system('python {} linear 0 --exp-force'.format(sampler_path))
 
-
-    test_results_path = os.path.join(project_setup['root'], 'test_data.json')
-    with open(test_results_path, 'r') as in_file:
-        test_results = json.load(in_file)
-
-    assert test_results['sampler_calls'] == 1
-
-    os.system('python {} linear 0 --exp-force'.format(sampler_path))
-
-    with open(test_results_path, 'r') as in_file:
-        test_results = json.load(in_file)
-    
-    assert test_results['sampler_calls'] == 2
-
-
-@pytest.mark.parametrize('project_setup', [([])], indirect=True)
-def test_run_force_repeated(project_setup):
-    path = project_setup['curdir']
-    sampler_path = os.path.join(path, 'sampler.py')
-    
-    os.system('python {} linear 0 --exp-force'.format(sampler_path))
-
-
-    test_results_path = os.path.join(project_setup['root'], 'test_data.json')
+    test_results_path = os.path.join(xlab_project_init['root'], 'test_data.json')
     with open(test_results_path, 'r') as in_file:
         test_results = json.load(in_file)
 
