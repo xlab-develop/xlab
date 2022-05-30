@@ -8,7 +8,6 @@ import fasteners
 # Dict of directories
 _dirs = {}
 
-
 def find_root_dir(path):
     """Returns the location of the project directory if found.
     
