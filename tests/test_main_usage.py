@@ -72,3 +72,21 @@ def test_run_force_repeated(xlab_project_init):
         test_results = json.load(in_file)
     
     assert test_results['sampler_calls'] == 2
+
+
+def test_run_index_by_executable(xlab_project_init):
+    root = xlab_project_init['root']
+    sampler_a_path = os.path.join(root, 'a', 'sampler.py')
+    sampler_b_path = os.path.join(root, 'b', 'sampler.py')
+    
+    os.system('python {} linear 0'.format(sampler_a_path))
+    os.system('python {} linear 0'.format(sampler_b_path))
+
+    test_results_path = os.path.join(xlab_project_init['root'], 'test_data.json')
+    with open(test_results_path, 'r') as in_file:
+        test_results = json.load(in_file)
+
+    assert test_results['sampler_calls'] == 2
+    
+    sampler_data = test_results['sampler_data']
+    assert sampler_data[0]['data'] == sampler_data[1]['data']

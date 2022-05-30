@@ -10,8 +10,8 @@ from xlab.filesys import dirs
 @pytest.fixture()
 def xlab_project_missing(tmpdir):
     subdirs = [
-        ['a'],
-        ['b']
+        ['b'],
+        ['a']
     ]
 
     path = tmpdir
@@ -27,10 +27,14 @@ def xlab_project_missing(tmpdir):
     templates_path = os.path.join(tests_path, 'script_templates')
 
     for filename in ['sampler.py', 'run.py', 'plot.py']:
-        template_path = os.path.join(templates_path, filename)
-        script_path = os.path.join(future_curdir, filename)
+        src_path = os.path.join(templates_path, filename)
+        dst_path = os.path.join(future_curdir, filename)
+    
+        shutil.copyfile(src_path, dst_path)
 
-        shutil.copyfile(template_path, script_path)
+    shutil.copyfile(
+        os.path.join(templates_path, 'sampler.py'),
+        os.path.join(tmpdir, 'b', 'sampler.py'))
 
     results_path = os.path.join(tmpdir, 'results.json')
     with open(results_path, 'w') as out_file:
