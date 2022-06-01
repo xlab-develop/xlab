@@ -4,8 +4,8 @@ import pytest
 import json
 import pickle
 
-from xlab.filesys import find_root_dir, Directories, MetadataLoader, HashmapLoader
-from xlab.filesys import dirs
+from xlab.filesys import dirs, find_root_dir, Directories
+from xlab.filesys import MetadataLoader, HashmapLoader
 
 from .fixtures import xlab_project_missing, xlab_project_init
 
