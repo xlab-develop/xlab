@@ -23,7 +23,6 @@ from xlab.cache import get_hash
     ({'a':0}, {'a':0, 'b':0}, False),
     ({'a':0}, {'a':[0]}, False),
     ({'a':0}, {'a':{'k':0}}, False),
-    ({'a':0}, {'a':{'k':0}}, False),
 
     
     ### Hash order invariance tests
