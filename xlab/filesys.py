@@ -1,19 +1,23 @@
 import os
-import sys
+import inspect
 import json
 import pickle
 import fasteners
 
+
 # Dict of directories
 _dirs = {}
 
-
-def find_root_dir():
-    """Returns the location of the project directory if found."""
-
+def find_root_dir(path):
+    """Returns the location of the project directory if found.
+    
+    Args:
+        path: location where to start looking for root
+    """
+    
     # Get the current working directory
     try:
-        filename = os.path.realpath(sys.argv[0])
+        filename = os.path.realpath(path)
         dirname = os.path.dirname(filename) if os.path.isfile(filename) else filename
 
         curr_dir = dirname
@@ -33,7 +37,11 @@ def find_root_dir():
 
 
 def relative_root_path(path):
-    """Returns a path relative to the project directory."""
+    """Returns a path relative to the project directory.
+    
+    Args:
+        path: location to which extract a root directory
+    """
     
     # Take project path as a reference
     path = os.path.realpath(path)
@@ -55,11 +63,15 @@ def relative_root_path(path):
 
 
 class Directories:
-    def __init__(self):
+    def __init__(self, path=None):
         """Initializes directory structure."""
 
+        if path == None:
+            abs_path = os.path.abspath((inspect.stack()[0])[1])
+            path = os.path.dirname(abs_path)
+        
         # Project path
-        root = find_root_dir()
+        root = find_root_dir(path)
 
         self._init_q = root != None
         if self._init_q:
